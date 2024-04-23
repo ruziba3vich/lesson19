@@ -1,0 +1,4 @@
+This project is aimed to load all participants full names in a certain event
+into a new `fullnames.txt` file, we don't need the order of the participants.
+    Police officer asked us to give fullnames of all guests in the event, so we
+did what they asked.

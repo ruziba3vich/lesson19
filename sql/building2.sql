@@ -1,0 +1,4 @@
+CREATE TABLE IF NOT EXISTS building2 (
+    id SERIAL PRIMARY KEY,
+    fullname VARCHAR(255)
+);

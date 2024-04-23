@@ -21,12 +21,27 @@ func main() {
 	dbNames := []string{"building1", "building2", "building3", "building4", "building5"}
 	buildings := make([][]string, len(dbNames))
 
+	for _, dbName := range dbNames {
+		name := "sql/db/" + dbName + ".sql"
+		sqlFile, err := os.ReadFile(name)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		_, err = db.Exec(string(sqlFile))
+		if err != nil {
+			log.Fatal(err)
+		}
+	}
+
 	var wg sync.WaitGroup
 	for i := range dbNames {
 		wg.Add(1)
 		go func(i int) {
 			defer wg.Done()
-			LoadFromDb(db, dbNames[i], &buildings[i])
+			if err := LoadFromDb(db, dbNames[i], &buildings[i]); err != nil {
+				log.Println(err)
+			}
 		}(i)
 	}
 	wg.Wait()
@@ -60,27 +75,26 @@ func FanIn(participants []string, ch chan<- string) {
 	}
 }
 
-func LoadFromDb(db *sql.DB, dbName string, data *[]string) {
+func LoadFromDb(db *sql.DB, dbName string, data *[]string) error {
 	query := fmt.Sprintf("SELECT fullname FROM %s;", dbName)
 	rows, err := db.Query(query)
 	if err != nil {
-		log.Fatal(err)
-		return
+		return err
 	}
 	defer rows.Close()
 
 	for rows.Next() {
 		var fullname string
 		if err := rows.Scan(&fullname); err != nil {
-			log.Fatal(err)
-			return
+			return err
 		}
 		*data = append(*data, fullname)
 	}
 	if err := rows.Err(); err != nil {
-		log.Fatal(err)
-		return
+		return err
 	}
+
+	return nil
 }
 
 func WriteToFile(filename string, data []string) error {
